@@ -1,10 +1,8 @@
-name: Build APK
+name: Build APK & AAB
 
 on:
   push:
-    branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
+    branches: [ main ]
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -15,27 +13,24 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    
-    - name: Set up Java
-      uses: actions/setup-java@v4
+
+    - uses: actions/setup-java@v4
       with:
-        java-version: '17'
         distribution: 'temurin'
-    
-    - name: Set up Flutter
-      uses: subosito/flutter-action@v2
+        java-version: '17'
+
+    - uses: subosito/flutter-action@v2
       with:
-        flutter-version: '3.13.0'
-        channel: 'stable'
-    
-    - name: Get dependencies
-      run: flutter pub get
-    
-    - name: Build APK
-      run: flutter build apk --release
-    
-    - name: Upload APK
-      uses: actions/upload-artifact@v4
+        channel: stable
+
+    - run: flutter clean
+    - run: flutter pub get
+    - run: flutter build apk --release --no-tree-shake-icons
+    - run: flutter build appbundle --release
+
+    - uses: actions/upload-artifact@v4
       with:
-        name: release-apk
-        path: build/app/outputs/flutter-apk/app-release.apk
+        name: artifacts
+        path: |
+          build/app/outputs/flutter-apk/app-release.apk
+          build/app/outputs/bundle/release/app-release.aab
